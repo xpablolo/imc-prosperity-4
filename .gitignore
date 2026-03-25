@@ -1,1 +1,5 @@
 .venv/
+.DS_Store
+models_tutorial/__pycache__/
+tutorial_v0/__pycache__/
+__pycache__/
