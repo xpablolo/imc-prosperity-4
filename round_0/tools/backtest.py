@@ -13,12 +13,14 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-# This repo's strategy examples use `from datamodel import ...` (no package prefix).
-MODELS_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = MODELS_DIR.parent
-DATA_DIR = PROJECT_ROOT / "data_tutorial"
-BACKTEST_PLOTS_BASE_DIR = MODELS_DIR / "backtest_plots"
+TOOLS_DIR = Path(__file__).resolve().parent
+ROUND_DIR = TOOLS_DIR.parent
+PROJECT_ROOT = ROUND_DIR.parent
+MODELS_DIR = ROUND_DIR / "models"
+DATA_DIR = PROJECT_ROOT / "data" / "round_0"
+BACKTEST_PLOTS_BASE_DIR = ROUND_DIR / "results"
 
+# Models use `from datamodel import ...` — make models/ importable.
 sys.path.insert(0, str(MODELS_DIR))
 
 from datamodel import (  # noqa: E402

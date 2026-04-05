@@ -5,8 +5,10 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 
 
-PROJECT_ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = PROJECT_ROOT / "data_tutorial"
+TOOLS_DIR = Path(__file__).resolve().parent
+ROUND_DIR = TOOLS_DIR.parent
+PROJECT_ROOT = ROUND_DIR.parent
+DATA_DIR = PROJECT_ROOT / "data" / "round_0"
 OUTPUT_DIR = DATA_DIR / "plots"
 
 

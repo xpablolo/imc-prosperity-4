@@ -8,7 +8,7 @@ from typing import Dict, List, Optional, Tuple
 try:
     from datamodel import OrderDepth, TradingState, Order
 except ImportError:  # pragma: no cover - fallback when executed from repo root
-    from models_tutorial.datamodel import OrderDepth, TradingState, Order
+    from round_0.models.datamodel import OrderDepth, TradingState, Order
 
 
 # =============================================================================
