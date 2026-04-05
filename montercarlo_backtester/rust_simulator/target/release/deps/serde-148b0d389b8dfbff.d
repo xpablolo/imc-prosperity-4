@@ -1,0 +1,14 @@
+/Users/pablo/Desktop/prosperity/montercarlo_backtester/rust_simulator/target/release/deps/serde-148b0d389b8dfbff.d: /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/pablo/Desktop/prosperity/montercarlo_backtester/rust_simulator/target/release/build/serde-65d43fa14511931c/out/private.rs
+
+/Users/pablo/Desktop/prosperity/montercarlo_backtester/rust_simulator/target/release/deps/libserde-148b0d389b8dfbff.rlib: /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/pablo/Desktop/prosperity/montercarlo_backtester/rust_simulator/target/release/build/serde-65d43fa14511931c/out/private.rs
+
+/Users/pablo/Desktop/prosperity/montercarlo_backtester/rust_simulator/target/release/deps/libserde-148b0d389b8dfbff.rmeta: /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs /Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs /Users/pablo/Desktop/prosperity/montercarlo_backtester/rust_simulator/target/release/build/serde-65d43fa14511931c/out/private.rs
+
+/Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/lib.rs:
+/Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/integer128.rs:
+/Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/mod.rs:
+/Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/de.rs:
+/Users/pablo/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/serde-1.0.228/src/private/ser.rs:
+/Users/pablo/Desktop/prosperity/montercarlo_backtester/rust_simulator/target/release/build/serde-65d43fa14511931c/out/private.rs:
+
+# env-dep:OUT_DIR=/Users/pablo/Desktop/prosperity/montercarlo_backtester/rust_simulator/target/release/build/serde-65d43fa14511931c/out

@@ -1,8 +1,0 @@
-seed=20260401
-fv_mode=Simulate
-trade_mode=Simulate
-tomato_support=Quarter
-actual_dir=/Users/pablo/Desktop/prosperity/data/round_0
-strategy=/Users/pablo/Desktop/prosperity/round_0/models/model_v2.py
-sessions=100
-write_session_limit=10
