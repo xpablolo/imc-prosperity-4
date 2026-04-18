@@ -1,0 +1,10 @@
+product,hypothesis,confidence,robustness
+ASH_COATED_OSMIUM,Fixed fair value near 10000 with no meaningful drift,high,stable across all 3 days
+ASH_COATED_OSMIUM,Short-horizon mean reversion around fair value,medium,moderately stable
+ASH_COATED_OSMIUM,Predictive order book imbalance / microprice signal,high,stable across all 3 days
+ASH_COATED_OSMIUM,No reliable time-of-day directional pattern,high,stable across days
+INTARIAN_PEPPER_ROOT,Fair value increases approximately linearly with timestamp,very high,extremely stable across all 3 days
+INTARIAN_PEPPER_ROOT,Residual around moving fair is mean-reverting at short horizons,medium-high,stable across all 3 days
+INTARIAN_PEPPER_ROOT,Imbalance improves timing around moving fair,high,stable across all 3 days
+INTARIAN_PEPPER_ROOT,Intraday path is highly repeatable day-to-day,very high,extremely stable
+INTARIAN_PEPPER_ROOT,Passive symmetric quoting would suffer adverse selection,high,stable across all 3 days

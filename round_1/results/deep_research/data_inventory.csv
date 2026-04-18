@@ -1,0 +1,7 @@
+filename,granularity,rows,products,time_span,limitations
+data/round_1/prices_round_1_day_-2.csv,event / quote snapshots,20000,"ASH_COATED_OSMIUM, INTARIAN_PEPPER_ROOT",0..999900,Missing best quote fields on ~8% of rows; 49 mid_price=0 rows total
+data/round_1/prices_round_1_day_-1.csv,event / quote snapshots,20000,"ASH_COATED_OSMIUM, INTARIAN_PEPPER_ROOT",0..999900,Missing best quote fields on ~8% of rows; 49 mid_price=0 rows total
+data/round_1/prices_round_1_day_0.csv,event / quote snapshots,20000,"ASH_COATED_OSMIUM, INTARIAN_PEPPER_ROOT",0..999900,Missing best quote fields on ~8% of rows; 49 mid_price=0 rows total
+data/round_1/trades_round_1_day_-2.csv,trade events,773,"ASH_COATED_OSMIUM, INTARIAN_PEPPER_ROOT",700..997500,Buyer/seller metadata absent (all NaN)
+data/round_1/trades_round_1_day_-1.csv,trade events,760,"ASH_COATED_OSMIUM, INTARIAN_PEPPER_ROOT",2800..998300,Buyer/seller metadata absent (all NaN)
+data/round_1/trades_round_1_day_0.csv,trade events,743,"ASH_COATED_OSMIUM, INTARIAN_PEPPER_ROOT",200..998400,Buyer/seller metadata absent (all NaN)

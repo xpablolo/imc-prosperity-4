@@ -1,0 +1,7 @@
+model,day,sells_while_inv_lt_20,sold_qty_while_inv_lt_20,sells_while_inv_lt_40,sold_qty_while_inv_lt_40,sells_while_inv_lt_60,sold_qty_while_inv_lt_60,sells_before_first_reach_40,sold_qty_before_first_reach_40
+model_C,-2,0,0,50,341,240,1713,2,18
+model_C,-1,8,39,103,702,287,2061,0,0
+model_C,0,4,23,96,625,285,2011,0,0
+model_D,-2,621,4956,859,7171,878,7350,73,620
+model_D,-1,553,4370,766,6337,785,6521,1,6
+model_D,0,447,3452,619,5029,635,5181,173,1375

@@ -1,0 +1,5 @@
+base_model,variant,ash_pnl,pepper_pnl,total_pnl,pepper_turnover,pepper_avg_inventory
+model_E_plus_14,weaker_offset_size,62977.5,213191.0,276168.5,7715.0,71.95241434582248
+model_E_plus_14,stronger_offset_size,62977.5,213191.0,276168.5,7715.0,71.95241434582248
+model_E_plus_16,weaker_book_support,62977.5,213203.0,276180.5,7719.0,71.94860749348828
+model_E_plus_16,stronger_book_support,62977.5,213191.0,276168.5,7715.0,71.95241434582248

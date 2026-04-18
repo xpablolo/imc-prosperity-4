@@ -1,0 +1,12 @@
+candidate,variant,category,delta_round_1,delta_round_2,delta_both,implementable_with_real_inputs,why
+ASH default_edge -5,ash_edge_m5,No tocar,0.0,0.0,0.0,sí,No cambia nada en el replay local; moverlo añade ruido sin beneficio.
+ASH default_edge +5,ash_edge_p5,No tocar,0.0,0.0,0.0,sí,No cambia nada en el replay local; moverlo añade ruido sin beneficio.
+Sin cambios,baseline,No tocar,0.0,0.0,0.0,sí,Es el punto de referencia real; ya está validado en live según tu input.
+PEPPER base_update_weight = 0.3,pepper_base_update_03,Demasiado frágil / alto riesgo de overfit,1288.0,3606.0,4894.0,sí,"Es el microcambio más defendible si te obligaran a probar uno, pero la mejora sale de perseguir más rápido el mismo drift local."
+PEPPER base_update_weight = 0.4,pepper_base_update_04,Demasiado frágil / alto riesgo de overfit,1695.0,6868.0,8563.0,sí,Mejora mucho localmente porque carga más carry y más tiempo cerca del límite; eso es justo el tipo de tuning que más puede romperse fuera de muestra.
+PEPPER residual_weight = 0.6,pepper_residual_06,Demasiado frágil / alto riesgo de overfit,1092.0,1796.0,2888.0,sí,"Reduce el castigo por residual y empuja más fuerte la tesis tendencial; mejora local, pero empeora la prudencia del modelo."
+PEPPER price_slope +1%,pepper_slope_p01,Demasiado frágil / alto riesgo de overfit,-36.0,361.0,325.0,sí,Mejora local mínima ajustando exactamente la pendiente fija del drift observado.
+PEPPER price_slope +2%,pepper_slope_p02,Demasiado frágil / alto riesgo de overfit,-160.0,857.0,697.0,sí,"Mejora local algo mayor, pero sigue siendo tuning directo del slope conocido del dataset."
+PEPPER price_slope +5%,pepper_slope_p05,Demasiado frágil / alto riesgo de overfit,-616.0,2808.0,2192.0,sí,"La mejora local es fuerte, pero viene de hacer todavía más agresiva la hipótesis fija de drift."
+PEPPER take_width = 0.75,pepper_take_m025,No tocar,-468.0,210.0,-258.0,sí,Ligero beneficio en Round 2 pero pequeño e inconsistente contra Round 1; no supera la carga de prueba.
+PEPPER take_width = 1.25,pepper_take_p025,No tocar,-593.0,-1562.0,-2155.0,sí,Empeora de forma visible; no hay caso económico claro para ensanchar más el taking.

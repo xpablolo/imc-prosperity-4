@@ -1,0 +1,5 @@
+model,official_ash_pnl,official_pepper_pnl,official_total_pnl,official_day_-2_total,official_day_-1_total,official_day_0_total,official_min_day_pnl
+model_E_plus_16,56789.5,206145.0,262934.5,91996.5,86873.0,84065.0,84065.0
+model_E_plus_11,56789.5,206139.0,262928.5,91999.5,86863.0,84066.0,84066.0
+model_E_plus_14,56789.5,206139.0,262928.5,91990.5,86873.0,84065.0,84065.0
+model_E_plus_15,56789.5,206124.0,262913.5,91989.5,86859.0,84065.0,84065.0

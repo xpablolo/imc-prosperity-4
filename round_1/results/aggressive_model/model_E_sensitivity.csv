@@ -1,0 +1,3 @@
+variant,combined_pnl,pepper_pnl,pepper_avg_position,pepper_max_position,pepper_turnover,pepper_day_-2_pnl,pepper_day_-1_pnl,pepper_day_0_pnl,pepper_aggressive_fill_share
+model_E_sens_lower,270697.0,207719.5,70.96774193548387,80.0,8727.0,73556.5,67326.0,66837.0,0.7616361071932299
+model_E_sens_higher,272175.0,209197.5,71.51399185200027,80.0,8091.0,73949.5,68017.0,67231.0,0.7596371882086168

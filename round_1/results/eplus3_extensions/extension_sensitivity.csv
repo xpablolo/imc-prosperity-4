@@ -1,0 +1,7 @@
+base_model,variant,ash_pnl,pepper_pnl,total_pnl,pepper_avg_inventory,pepper_turnover,pepper_sell_qty
+model_E_plus_7,weaker_carry,62977.5,213748.0,276725.5,72.13013424163495,7559.0,3685.0
+model_E_plus_7,stronger_carry,62977.5,213814.0,276791.5,72.14496092967342,7513.0,3662.0
+model_E_plus_7,weaker_intention,62977.5,213795.0,276772.5,72.15721632271422,7537.0,3674.0
+model_E_plus_8,weaker_ash_polish,62977.5,213795.0,276772.5,72.15721632271422,7537.0,3674.0
+model_E_plus_8,stronger_ash_polish,62977.5,213795.0,276772.5,72.15721632271422,7537.0,3674.0
+model_E_plus_8,less_sell_reluctance,62977.5,213795.0,276772.5,72.15721632271422,7537.0,3674.0

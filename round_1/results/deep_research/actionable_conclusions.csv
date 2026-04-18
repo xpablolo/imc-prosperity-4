@@ -1,0 +1,7 @@
+product,finding,evidence_strength,robustness,later_use,overfit_risk
+ASH_COATED_OSMIUM,Stationary around ~10000 with small/day-unstable drift,high,high,market making + reversion logic,low
+ASH_COATED_OSMIUM,Imbalance/microprice are the core predictive features,high,high,state variables for entry/exit and fair-value shading,medium
+ASH_COATED_OSMIUM,Time-of-day directional trend is weak / inconsistent,high,high,avoid hard directional bias by time alone,low
+INTARIAN_PEPPER_ROOT,Almost linear upward fair-value drift dominates,very high,very high,moving fair + directional inventory bias,low
+INTARIAN_PEPPER_ROOT,Residual pullbacks exist but are tiny vs the drift,medium-high,high,tactical timing around moving fair,medium
+INTARIAN_PEPPER_ROOT,Passive symmetric quoting is structurally risky,high,high,favor inventory-aware asymmetry / aggressive side selection,low

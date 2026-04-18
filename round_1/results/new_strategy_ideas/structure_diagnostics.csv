@@ -1,0 +1,7 @@
+model,family,avg_core_target,avg_tactical_target,tactical_usage_share,avg_schedule_target_early,avg_schedule_target_mid,avg_schedule_target_late,avg_schedule_gap_abs,avg_hold_target,hold_adherence_gap_abs,accumulate_share,carry_share,defend_share,reduce_share,transition_count
+model_E_plus_11,baseline,,,,,,,,,,,,,,
+model_F1,core_tactical,47.81753823549055,11.854738529352835,0.9308087891538102,,,,,,,,,,,
+model_F2,schedule,,,,59.627450980392155,77.15151515151516,70.54086401075811,8.513090229079008,,,,,,,
+model_F3,aggressive_hold,,,,,,,,75.75215387697857,5.4114739865090495,,,,,
+model_F4,state_machine,,,,,,,,,,0.0,1.0,0.0,0.0,0.0
+model_F5,core_tactical,47.30828825218727,14.296834301743138,0.9427970346623923,,,,,,,,,,,

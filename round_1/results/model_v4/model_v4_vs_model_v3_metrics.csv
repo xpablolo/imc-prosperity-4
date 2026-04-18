@@ -1,0 +1,4 @@
+product,label,v3_replay_pnl,v4_replay_pnl,delta_replay,v3_backtest_pnl,v4_backtest_pnl,delta_backtest
+ASH_COATED_OSMIUM,Ash Coated Osmium,57123.5,56789.5,-334.0,63335.0,63148.0,-187.0
+INTARIAN_PEPPER_ROOT,Intarian Pepper Root,117769.5,120538.0,2768.5,132424.0,132076.5,-347.5
+ALL,Combined,174893.0,177327.5,2434.5,195759.0,195224.5,-534.5

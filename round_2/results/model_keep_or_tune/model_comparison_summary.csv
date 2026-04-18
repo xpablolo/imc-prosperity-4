@@ -1,0 +1,6 @@
+alt_model,delta_round_1_total,delta_round_2_total,mean_daily_total_delta,std_daily_total_delta,min_daily_total_delta,wins_total_days,wins_pepper_days,wins_ash_days,scenario_wins,min_scenario_delta,max_scenario_delta,kiko_small_perturbation_range,alt_small_perturbation_range
+model_F3,7493.0,6438.0,2321.8333333333335,1098.0799910146195,406.0,6,6,2,6,4107.0,6855.0,2140.0,4707.0
+model_G2,6901.0,6089.0,2165.0,1103.7853052111175,341.0,6,6,2,6,2913.0,6631.0,2140.0,5187.0
+model_G4,7120.0,5304.0,2070.6666666666665,1128.9074659451353,92.0,6,6,2,6,2819.0,6304.0,2140.0,5072.0
+model_G1,7099.0,4700.0,1966.5,1225.3403200743865,-181.0,5,6,2,6,2691.0,5595.0,2140.0,5044.0
+model_G5,6759.0,4528.0,1881.1666666666667,1260.409999431402,-328.0,5,6,2,6,2453.0,5375.0,2140.0,4820.0

@@ -1,0 +1,9 @@
+model,family,hold_target_mean,hold_gap_abs,schedule_target_early,schedule_target_mid,schedule_target_late,schedule_gap_abs,build_share,hold_share,defend_share,trim_share,transition_count,state_target_mean,schedule_target_mean,benchmark_target_mean,benchmark_gap_abs
+model_F3,aggressive_hold,75.75215387697857,5.4114739865090495,,,,,,,,,,,,,
+model_F2,schedule,,,59.627450980392155,77.15151515151516,70.54086401075811,8.513090229079008,,,,,,,,,
+model_F4,state_machine,,,,,,,0.0,0.0,0.0,0.0,0.0,70.67888866626595,,,
+model_G1,aggressive_hold,76.73669271355107,4.945268149335471,,,,,,,,,,,,,
+model_G2,schedule,,,61.372549019607845,78.66666666666667,73.05489998319045,7.102250717958992,,,,,,,,,
+model_G3,hybrid_hold_schedule,75.11814599612636,6.0905630134241635,,,,,,,,,,,0.0,,
+model_G4,state_machine,,,,,,,0.0,1.0,0.0,0.0,0.0,75.50544313096908,,,
+model_G5,benchmark_guardrails,,,,,,,,,,,,,,78.22587323849596,4.061410538970146

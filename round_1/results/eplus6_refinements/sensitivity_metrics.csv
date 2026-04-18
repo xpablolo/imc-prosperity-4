@@ -1,0 +1,7 @@
+base_model,variant,ash_pnl,pepper_pnl,total_pnl,pepper_avg_inventory,pepper_turnover,pepper_sell_qty
+model_E_plus_13,weaker_combined,62977.5,213191.0,276168.5,71.95241434582248,7715.0,3763.0
+model_E_plus_13,stronger_combined,62977.5,213191.0,276168.5,71.95241434582248,7715.0,3763.0
+model_E_plus_11,smaller_buy_curve,62977.5,213167.0,276144.5,71.94837373939758,7699.0,3755.0
+model_E_plus_11,larger_buy_curve,62977.5,213167.0,276144.5,71.94837373939758,7699.0,3755.0
+model_E_plus_12,stricter_confirm,62977.5,213157.0,276134.5,71.93959126427569,7719.0,3765.0
+model_E_plus_12,easier_strong_confirm,62977.5,213145.0,276122.5,71.9433981166099,7715.0,3763.0

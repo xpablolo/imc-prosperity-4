@@ -1,0 +1,4 @@
+model,ash_backtest_pnl,pepper_backtest_pnl,combined_backtest_pnl,ash_backtest_max_dd,pepper_backtest_max_dd,ash_backtest_max_abs_pos,pepper_backtest_max_abs_pos,ash_replay_nolimit_pnl,pepper_replay_nolimit_pnl,combined_replay_nolimit_pnl
+model_A,63148.0,123703.5,186851.5,-1254.0,-1201.0,80.0,89.0,56789.5,111305.0,168094.5
+model_B,63148.0,132221.5,195369.5,-1254.0,-1728.0,80.0,108.0,56789.5,108685.5,165475.0
+model_C,63148.0,232799.5,295947.5,-1254.0,-3879.0,80.0,180.0,56789.5,209827.0,266616.5
