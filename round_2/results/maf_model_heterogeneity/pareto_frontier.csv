@@ -1,0 +1,7 @@
+model,on_frontier,dominated_by
+model_kiko,True,
+model_G5,True,
+model_G1,False,model_G5
+model_G4,False,model_G5
+model_G2,True,
+model_F3,False,"model_G5, model_G4, model_G2"

@@ -1,0 +1,3 @@
+metric,best_bid,best_ev_uplift,smallest_bid_within_95pct,smallest_bid_within_90pct
+weighted_risk_adjusted,150,537.3541140524936,125,100
+pessimistic_risk_adjusted,175,515.5536103730083,150,150

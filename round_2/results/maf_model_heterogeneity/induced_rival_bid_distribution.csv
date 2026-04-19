@@ -1,0 +1,33 @@
+scenario,scenario_label,bid_level,probability
+R1,R1 — Field conservador,100,0.15525
+R1,R1 — Field conservador,125,0.21124999999999997
+R1,R1 — Field conservador,150,0.24575
+R1,R1 — Field conservador,175,0.17625
+R1,R1 — Field conservador,200,0.10225000000000002
+R1,R1 — Field conservador,225,0.056249999999999994
+R1,R1 — Field conservador,250,0.03175000000000001
+R1,R1 — Field conservador,300,0.02125
+R2,R2 — Field mixto,100,0.1355
+R2,R2 — Field mixto,125,0.18999999999999997
+R2,R2 — Field mixto,150,0.23650000000000002
+R2,R2 — Field mixto,175,0.185
+R2,R2 — Field mixto,200,0.11449999999999999
+R2,R2 — Field mixto,225,0.0675
+R2,R2 — Field mixto,250,0.041
+R2,R2 — Field mixto,300,0.03
+R3,R3 — Field adaptativo,100,0.1035
+R3,R3 — Field adaptativo,125,0.16
+R3,R3 — Field adaptativo,150,0.23049999999999998
+R3,R3 — Field adaptativo,175,0.205
+R3,R3 — Field adaptativo,200,0.13449999999999998
+R3,R3 — Field adaptativo,225,0.0815
+R3,R3 — Field adaptativo,250,0.049
+R3,R3 — Field adaptativo,300,0.036
+R4,R4 — Field muy agresivo,100,0.08500000000000002
+R4,R4 — Field muy agresivo,125,0.136
+R4,R4 — Field muy agresivo,150,0.21400000000000002
+R4,R4 — Field muy agresivo,175,0.20899999999999996
+R4,R4 — Field muy agresivo,200,0.147
+R4,R4 — Field muy agresivo,225,0.096
+R4,R4 — Field muy agresivo,250,0.063
+R4,R4 — Field muy agresivo,300,0.05

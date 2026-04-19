@@ -1,0 +1,14 @@
+criterion,bid
+best_bid_ev_mean_conservative,175
+best_bid_downside_conservative,175
+best_bid_ev_mean_downside,175
+best_bid_downside_downside,175
+best_bid_ev_mean_central,175
+best_bid_downside_central,175
+best_bid_E_cola_superior_conservative,175
+best_bid_E_cola_superior_label,Escenario E — cola superior agresiva
+best_bid_F_overinsurance_conservative,175
+best_bid_F_overinsurance_label,Escenario F — overinsurance
+robust_global_bid_maximin_downside,175
+robust_global_bid_mean_ev_conservative,175
+robust_global_bid_minmax_regret_downside,175

@@ -1,0 +1,7 @@
+criterion,bid
+best_bid_ev_mean_discrete,150
+best_bid_downside_discrete,150
+best_bid_bunching_125,150
+best_bid_bunching_150,150
+best_bid_worst_case_combo,150
+robust_global_bid,150

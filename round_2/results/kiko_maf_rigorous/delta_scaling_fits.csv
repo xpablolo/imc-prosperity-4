@@ -1,0 +1,11 @@
+model,rmse,param_1,param_2,scenario
+linear,0.1083474835271768,,,uniform_depth_125
+capped_linear,0.1083474835271768,1.0,,uniform_depth_125
+log,0.10894825338925393,0.01,,uniform_depth_125
+piecewise_saturation,0.11314497174919042,0.19999999999999998,0.21999999999999997,uniform_depth_125
+sqrt,0.24633966045770142,,,uniform_depth_125
+linear,0.0989657139383989,,,front_bias_depth_25
+capped_linear,0.0989657139383989,1.0,,front_bias_depth_25
+log,0.09954029929819307,0.01,,front_bias_depth_25
+piecewise_saturation,0.10319677966642131,0.19999999999999998,0.21999999999999997,front_bias_depth_25
+sqrt,0.2346460285415649,,,front_bias_depth_25

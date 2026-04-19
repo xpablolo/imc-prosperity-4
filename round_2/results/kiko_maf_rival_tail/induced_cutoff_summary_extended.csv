@@ -1,0 +1,7 @@
+scenario,scenario_label,cutoff_mean,cutoff_median,cutoff_p10,cutoff_p25,cutoff_p75,cutoff_p90
+A_masa_100,Escenario A — masa en 100,101.6389,100.0,100.0,100.0,100.0,100.0
+B_masa_125,Escenario B — masa en 125,125.031,125.0,125.0,125.0,125.0,125.0
+C_masa_150,Escenario C — masa en 150,149.3251,150.0,150.0,150.0,150.0,150.0
+D_mixto,Escenario D — mezcla heterogénea,125.6159,125.0,125.0,125.0,125.0,125.0
+E_cola_superior,Escenario E — cola superior agresiva,150.5442,150.0,150.0,150.0,150.0,150.0
+F_overinsurance,Escenario F — overinsurance,174.1277,175.0,150.0,175.0,175.0,175.0

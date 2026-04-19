@@ -1,0 +1,73 @@
+scenario,scenario_label,cutoff_level,cdf
+A_masa_100,Escenario A — masa en 100,0,0.0
+A_masa_100,Escenario A — masa en 100,25,0.0
+A_masa_100,Escenario A — masa en 100,50,0.0
+A_masa_100,Escenario A — masa en 100,75,4e-06
+A_masa_100,Escenario A — masa en 100,100,0.93444
+A_masa_100,Escenario A — masa en 100,125,1.0
+A_masa_100,Escenario A — masa en 100,150,1.0
+A_masa_100,Escenario A — masa en 100,175,1.0
+A_masa_100,Escenario A — masa en 100,200,1.0
+A_masa_100,Escenario A — masa en 100,250,1.0
+A_masa_100,Escenario A — masa en 100,300,1.0
+A_masa_100,Escenario A — masa en 100,400,1.0
+B_masa_125,Escenario B — masa en 125,0,0.0
+B_masa_125,Escenario B — masa en 125,25,0.0
+B_masa_125,Escenario B — masa en 125,50,0.0
+B_masa_125,Escenario B — masa en 125,75,0.0
+B_masa_125,Escenario B — masa en 125,100,0.001472
+B_masa_125,Escenario B — masa en 125,125,0.997288
+B_masa_125,Escenario B — masa en 125,150,1.0
+B_masa_125,Escenario B — masa en 125,175,1.0
+B_masa_125,Escenario B — masa en 125,200,1.0
+B_masa_125,Escenario B — masa en 125,250,1.0
+B_masa_125,Escenario B — masa en 125,300,1.0
+B_masa_125,Escenario B — masa en 125,400,1.0
+C_masa_150,Escenario C — masa en 150,0,0.0
+C_masa_150,Escenario C — masa en 150,25,0.0
+C_masa_150,Escenario C — masa en 150,50,0.0
+C_masa_150,Escenario C — masa en 150,75,0.0
+C_masa_150,Escenario C — masa en 150,100,0.0
+C_masa_150,Escenario C — masa en 150,125,0.02732
+C_masa_150,Escenario C — masa en 150,150,0.999676
+C_masa_150,Escenario C — masa en 150,175,1.0
+C_masa_150,Escenario C — masa en 150,200,1.0
+C_masa_150,Escenario C — masa en 150,250,1.0
+C_masa_150,Escenario C — masa en 150,300,1.0
+C_masa_150,Escenario C — masa en 150,400,1.0
+D_mixto,Escenario D — mezcla heterogénea,0,0.0
+D_mixto,Escenario D — mezcla heterogénea,25,0.0
+D_mixto,Escenario D — mezcla heterogénea,50,0.0
+D_mixto,Escenario D — mezcla heterogénea,75,0.0
+D_mixto,Escenario D — mezcla heterogénea,100,0.045632
+D_mixto,Escenario D — mezcla heterogénea,125,0.929736
+D_mixto,Escenario D — mezcla heterogénea,150,0.999996
+D_mixto,Escenario D — mezcla heterogénea,175,1.0
+D_mixto,Escenario D — mezcla heterogénea,200,1.0
+D_mixto,Escenario D — mezcla heterogénea,250,1.0
+D_mixto,Escenario D — mezcla heterogénea,300,1.0
+D_mixto,Escenario D — mezcla heterogénea,400,1.0
+E_cola_superior,Escenario E — cola superior agresiva,0,0.0
+E_cola_superior,Escenario E — cola superior agresiva,25,0.0
+E_cola_superior,Escenario E — cola superior agresiva,50,0.0
+E_cola_superior,Escenario E — cola superior agresiva,75,0.0
+E_cola_superior,Escenario E — cola superior agresiva,100,0.0
+E_cola_superior,Escenario E — cola superior agresiva,125,0.00548
+E_cola_superior,Escenario E — cola superior agresiva,150,0.972752
+E_cola_superior,Escenario E — cola superior agresiva,175,1.0
+E_cola_superior,Escenario E — cola superior agresiva,200,1.0
+E_cola_superior,Escenario E — cola superior agresiva,250,1.0
+E_cola_superior,Escenario E — cola superior agresiva,300,1.0
+E_cola_superior,Escenario E — cola superior agresiva,400,1.0
+F_overinsurance,Escenario F — overinsurance,0,0.0
+F_overinsurance,Escenario F — overinsurance,25,0.0
+F_overinsurance,Escenario F — overinsurance,50,0.0
+F_overinsurance,Escenario F — overinsurance,75,0.0
+F_overinsurance,Escenario F — overinsurance,100,0.0
+F_overinsurance,Escenario F — overinsurance,125,0.0
+F_overinsurance,Escenario F — overinsurance,150,0.11366
+F_overinsurance,Escenario F — overinsurance,175,0.921248
+F_overinsurance,Escenario F — overinsurance,200,0.999992
+F_overinsurance,Escenario F — overinsurance,250,1.0
+F_overinsurance,Escenario F — overinsurance,300,1.0
+F_overinsurance,Escenario F — overinsurance,400,1.0

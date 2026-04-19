@@ -1,0 +1,4 @@
+delta_key,best_bid_equal_weight,best_bid_worst_case
+Delta_conservative_mean,200,200
+Delta_conservative_min,200,200
+Delta_central_mean,200,200

@@ -1,0 +1,7 @@
+delta_variant,delta_label,best_bid_ev_mean,smallest_bid_95pct,smallest_bid_90pct,max_EV_uplift
+central,Delta_central,175,150,125,1402.4837953763265
+conservative,Delta_conservative,175,125,100,811.4498530339739
+downside,Delta_downside,175,125,100,660.7590050001604
+ra1,Delta_RA_1,150,125,100,521.1512646245097
+ra2,Delta_RA_2,175,125,100,660.7590050001604
+ra3,Delta_RA_3,175,125,100,721.849889338193

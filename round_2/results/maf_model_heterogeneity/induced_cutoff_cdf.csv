@@ -1,0 +1,33 @@
+scenario,scenario_label,cutoff_level,cdf
+R1,R1 — Field conservador,100,0.0
+R1,R1 — Field conservador,125,0.002484
+R1,R1 — Field conservador,150,0.985488
+R1,R1 — Field conservador,175,1.0
+R1,R1 — Field conservador,200,1.0
+R1,R1 — Field conservador,225,1.0
+R1,R1 — Field conservador,250,1.0
+R1,R1 — Field conservador,300,1.0
+R2,R2 — Field mixto,100,0.0
+R2,R2 — Field mixto,125,0.000104
+R2,R2 — Field mixto,150,0.873292
+R2,R2 — Field mixto,175,1.0
+R2,R2 — Field mixto,200,1.0
+R2,R2 — Field mixto,225,1.0
+R2,R2 — Field mixto,250,1.0
+R2,R2 — Field mixto,300,1.0
+R3,R3 — Field adaptativo,100,0.0
+R3,R3 — Field adaptativo,125,0.0
+R3,R3 — Field adaptativo,150,0.410796
+R3,R3 — Field adaptativo,175,0.99998
+R3,R3 — Field adaptativo,200,1.0
+R3,R3 — Field adaptativo,225,1.0
+R3,R3 — Field adaptativo,250,1.0
+R3,R3 — Field adaptativo,300,1.0
+R4,R4 — Field muy agresivo,100,0.0
+R4,R4 — Field muy agresivo,125,0.0
+R4,R4 — Field muy agresivo,150,0.07864
+R4,R4 — Field muy agresivo,175,0.997876
+R4,R4 — Field muy agresivo,200,1.0
+R4,R4 — Field muy agresivo,225,1.0
+R4,R4 — Field muy agresivo,250,1.0
+R4,R4 — Field muy agresivo,300,1.0

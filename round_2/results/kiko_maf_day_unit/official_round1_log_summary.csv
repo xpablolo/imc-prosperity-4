@@ -1,0 +1,2 @@
+source,official_day_count,official_days,official_products,activity_rows,activity_rows_per_product,decision_timestamps,timestamp_min,timestamp_max,timestamp_step,engine_log_rows,trade_history_rows,submission_trade_rows
+/Users/pablo/Desktop/prosperity/round_1/official_result.log,1,1,"ASH_COATED_OSMIUM,INTARIAN_PEPPER_ROOT",20000,10000,10000,0,999900,100,10000,1352,1225

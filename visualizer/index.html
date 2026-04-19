@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="description"
+      content="Prosperity local dashboard for strategies, backtests and replay logs."
+    />
+    <link rel="preconnect" href="https://rsms.me/" />
+    <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+    <link rel="stylesheet" href="./styles.css" />
+    <title>Prosperity Strategy Dashboard</title>
+  </head>
+  <body class="theme-dark">
+    <div class="app">
+      <aside class="rail" id="rail">
+        <header class="rail-header">
+          <div>
+            <div class="brand">Prosperity Dashboard</div>
+            <div class="brand-sub">Local · Quant · Comparative</div>
+          </div>
+          <button class="btn icon" id="rail-collapse" title="Collapse">‹</button>
+        </header>
+
+        <div class="dropzone" id="dropzone" tabindex="0">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          <div class="dropzone-primary">Drop IMC .log / .json files</div>
+          <div class="dropzone-secondary">or use the detected workspace runs below</div>
+          <input type="file" id="file-input" accept=".log,.json,application/json" multiple hidden />
+        </div>
+
+        <div class="parse-progress hidden" id="parse-progress">
+          <div class="parse-progress-row">
+            <span id="parse-progress-message">…</span>
+            <span class="num" id="parse-progress-pct">0%</span>
+          </div>
+          <div class="parse-progress-track">
+            <div class="parse-progress-fill" id="parse-progress-fill"></div>
+          </div>
+        </div>
+
+        <div class="rail-scroll">
+          <section class="rail-section">
+            <div class="rail-section-head">
+              <span>Workspace runs</span>
+              <button class="btn icon" id="workspace-refresh" title="Rescan workspace">↻</button>
+            </div>
+            <input class="input rail-search" id="workspace-search" placeholder="Search backtests, logs, models" />
+            <div class="rail-section-status" id="workspace-status"></div>
+            <div class="workspace-list" id="workspace-list"></div>
+          </section>
+
+          <section class="rail-section rail-section-loaded">
+            <div class="rail-section-head">
+              <span>Loaded runs</span>
+            </div>
+            <div class="rail-list" id="rail-list"></div>
+          </section>
+        </div>
+
+        <footer class="rail-footer">
+          <label class="switch">
+            <span>Save to browser (IndexedDB)</span>
+            <input type="checkbox" id="persist-toggle" />
+          </label>
+          <div class="muted tiny">
+            Runs stay local. Auto-discovery needs the bundled Python server.
+            <button class="link" id="open-about">Why?</button>
+          </div>
+        </footer>
+      </aside>
+      <button class="rail-expand hidden" id="rail-expand" title="Expand">›</button>
+
+      <main class="main">
+        <header class="topbar" id="topbar">
+          <div class="topbar-row">
+            <button class="btn icon" id="step-back" title="Step back 10 (Shift+← for 100)" disabled>«</button>
+            <button class="btn play" id="play" title="Space to play/pause" disabled>▶</button>
+            <button class="btn icon" id="step-fwd" title="Step forward 10 (Shift+→ for 100)" disabled>»</button>
+            <div class="speed-group" id="speed-group">
+              <button class="speed-btn" data-speed="1">1×</button>
+              <button class="speed-btn active" data-speed="5">5×</button>
+              <button class="speed-btn" data-speed="10">10×</button>
+              <button class="speed-btn" data-speed="20">20×</button>
+              <button class="speed-btn" data-speed="50">50×</button>
+            </div>
+            <div class="scrubber-wrap">
+              <input type="range" class="scrubber" id="scrubber" min="0" max="0" value="0" step="1" disabled />
+              <div class="scrubber-label">
+                Tick <input class="inline-num" id="tick-cur" type="number" min="0" value="0" step="1" title="Jump to tick index" disabled />/<span class="muted" id="tick-max">0</span>
+                · <span id="tick-day-prefix"></span>TS <input class="inline-num wide" id="tick-ts" type="number" value="0" step="100" title="Jump to timestamp" disabled />
+              </div>
+            </div>
+            <button class="btn icon" id="theme-toggle" title="Toggle theme">☾</button>
+            <button class="btn icon" id="open-about-top" title="About / privacy">i</button>
+          </div>
+          <div class="topbar-row small">
+            <span class="muted tiny">Filters</span>
+            <select class="input" id="product-select" disabled>
+              <option value="">All products</option>
+            </select>
+            <span class="status-pill right">
+              <span class="status-dot"></span> Local-only · No uploads
+            </span>
+          </div>
+        </header>
+
+        <div class="dashboard" id="dashboard">
+          <section class="panel panel-kpi" id="panel-kpi">
+            <header class="panel-header"><span>KPIs</span></header>
+            <div class="panel-body kpi-grid" id="kpi-grid"></div>
+          </section>
+
+          <section class="panel panel-pnl" id="panel-pnl">
+            <header class="panel-header">
+              <span>PnL Performance</span>
+              <div class="panel-actions">
+                <label class="check small"><input type="checkbox" id="pnl-norm" /> normalize x</label>
+                <label class="check small"><input type="checkbox" id="pnl-diff" /> diff vs ref</label>
+                <label class="check small"><input type="checkbox" id="pnl-sampled" checked /> sampled</label>
+                <button class="btn icon" id="pnl-reset-zoom" title="Reset zoom">⤾</button>
+                <button class="btn icon" id="pnl-export" title="Export PNG">⤓</button>
+              </div>
+            </header>
+            <div class="chart-legend" id="pnl-legend"></div>
+            <div class="panel-body chart-body">
+              <canvas class="chart" id="chart-pnl"></canvas>
+              <div class="chart-empty" id="chart-pnl-empty">Load a run to see PnL.</div>
+            </div>
+          </section>
+
+          <section class="panel panel-summary" id="panel-summary">
+            <header class="panel-header">
+              <span>Run Comparison</span>
+              <div class="panel-actions">
+                <button class="btn icon" id="summary-export" title="Export CSV">⤓</button>
+              </div>
+            </header>
+            <div class="panel-body table-body" id="summary-body"></div>
+          </section>
+
+          <section class="panel panel-price" id="panel-price">
+            <header class="panel-header">
+              <span id="price-title">Price &amp; Liquidity</span>
+              <div class="panel-actions">
+                <label class="check small"><input type="checkbox" id="price-levels" checked /> L2/L3</label>
+                <label class="check small"><input type="checkbox" id="price-mid" checked /> mid</label>
+                <label class="check small"><input type="checkbox" id="price-micro" checked /> micro</label>
+                <label class="check small"><input type="checkbox" id="price-wallmid" checked /> wall mid</label>
+                <label class="check small"><input type="checkbox" id="price-buys" /> buys</label>
+                <label class="check small"><input type="checkbox" id="price-sells" /> sells</label>
+                <label class="check small"><input type="checkbox" id="price-bots" /> bots</label>
+                <label class="check small"><input type="checkbox" id="price-overlay" /> overlay days</label>
+                <label class="check small"><input type="checkbox" id="price-join-gaps" checked /> join gaps</label>
+                <button class="btn icon" id="price-reset-zoom" title="Reset zoom">⤾</button>
+              </div>
+            </header>
+            <div class="chart-legend" id="price-legend"></div>
+            <div class="panel-body chart-body">
+              <canvas class="chart" id="chart-price"></canvas>
+              <div class="chart-empty" id="chart-price-empty">Load a run to see prices.</div>
+            </div>
+          </section>
+
+          <section class="panel panel-book" id="panel-book">
+            <header class="panel-header">
+              <span id="book-title">Order Book</span>
+              <span class="muted num" id="book-mid-spread"></span>
+            </header>
+            <div class="panel-body book-body" id="book-body"></div>
+          </section>
+
+          <section class="panel panel-pressure" id="panel-pressure">
+            <header class="panel-header">
+              <span id="pressure-title">Market Pressure</span>
+              <span class="muted num" id="pressure-value"></span>
+            </header>
+            <div class="panel-body pressure-body" id="pressure-body"></div>
+          </section>
+
+          <section class="panel panel-position" id="panel-position">
+            <header class="panel-header">
+              <span id="position-title">Position</span>
+              <div class="panel-actions">
+                <label class="check small position-limit-wrap">limit ±<input type="number" id="position-limit" min="1" max="9999" class="input tiny-num" /></label>
+                <button class="btn icon" id="position-reset-zoom" title="Reset zoom">⤾</button>
+              </div>
+            </header>
+            <div class="chart-legend" id="position-legend"></div>
+            <div class="panel-body chart-body">
+              <canvas class="chart" id="chart-position"></canvas>
+              <div class="chart-empty" id="chart-position-empty">Load a run to see positions.</div>
+            </div>
+          </section>
+
+          <section class="panel panel-drawdown" id="panel-drawdown">
+            <header class="panel-header">
+              <span>Drawdown</span>
+              <div class="panel-actions">
+                <button class="btn icon" id="drawdown-reset-zoom" title="Reset zoom">⤾</button>
+              </div>
+            </header>
+            <div class="chart-legend" id="drawdown-legend"></div>
+            <div class="panel-body chart-body">
+              <canvas class="chart" id="chart-drawdown"></canvas>
+              <div class="chart-empty" id="chart-drawdown-empty">Load a run to see drawdown.</div>
+            </div>
+          </section>
+
+          <section class="panel panel-fills" id="panel-fills">
+            <header class="panel-header">
+              <span id="fills-title">Own Fills · current</span>
+              <label class="check small"><input type="checkbox" id="fills-current" checked /> current only</label>
+              <label class="check small"><input type="checkbox" id="fills-all" /> show all</label>
+            </header>
+            <div class="panel-body table-body" id="fills-body"></div>
+          </section>
+
+          <section class="panel panel-logs" id="panel-logs">
+            <header class="panel-header">
+              <div class="tabs">
+                <button class="tab active" data-log-tab="timeline">Timeline</button>
+                <button class="tab" data-log-tab="sandbox">Sandbox</button>
+                <button class="tab" data-log-tab="lambda">Algorithm</button>
+                <button class="tab" data-log-tab="trader">Trader Data</button>
+              </div>
+              <span class="muted num" id="logs-ts"></span>
+            </header>
+            <div class="panel-body logs-body" id="logs-body"></div>
+          </section>
+        </div>
+      </main>
+    </div>
+    <div id="modal-root"></div>
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
