@@ -1,11 +1,14 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
+from io import StringIO
 
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
+import matplotlib.patheffects as pe
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 from matplotlib.ticker import FuncFormatter
@@ -15,9 +18,12 @@ TOOLS_DIR = Path(__file__).resolve().parent
 ROUND_DIR = TOOLS_DIR.parent
 PROJECT_ROOT = ROUND_DIR.parent
 DATA_DIR = PROJECT_ROOT / "data" / "round_2"
+OFFICIAL_LOG_PATH = ROUND_DIR / "official_result.log"
 OUTPUT_DIR = ROUND_DIR / "plots"
 DAY_ORDER = [-1, 0, 1]
 DAY_COLORS = {-1: "#7C3AED", 0: "#2563EB", 1: "#10B981"}
+OFFICIAL_TEST_COLOR = "#F59E0B"
+DIAGNOSTIC_PRODUCTS = ("ASH_COATED_OSMIUM",)
 PRODUCT_COLORS = {
     "ASH_COATED_OSMIUM": "#2563EB",
     "INTARIAN_PEPPER_ROOT": "#F97316",
@@ -185,23 +191,10 @@ def classify_strategy(row: pd.Series) -> tuple[str, str]:
     )
 
 
-def load_prices() -> tuple[pd.DataFrame, int]:
-    frames: list[pd.DataFrame] = []
-    for day in DAY_ORDER:
-        csv_path = DATA_DIR / f"prices_round_2_day_{day}.csv"
-        df = pd.read_csv(csv_path, sep=";")
-        for column in df.columns:
-            if column != "product":
-                df[column] = pd.to_numeric(df[column], errors="coerce")
-        df["day"] = df["day"].astype(int)
-        frames.append(df)
-
-    prices = pd.concat(frames, ignore_index=True)
+def enrich_price_frame(prices: pd.DataFrame, day_offsets: dict[int, int]) -> pd.DataFrame:
+    prices = prices.copy()
     empty_book = prices["bid_price_1"].isna() & prices["ask_price_1"].isna()
     prices.loc[empty_book, "mid_price"] = np.nan
-
-    step = int(prices["timestamp"].max()) + 100
-    day_offsets = {day: index * step for index, day in enumerate(DAY_ORDER)}
     prices["global_ts"] = prices["timestamp"] + prices["day"].map(day_offsets)
     prices = prices.sort_values(["product", "day", "timestamp"]).reset_index(drop=True)
 
@@ -236,7 +229,39 @@ def load_prices() -> tuple[pd.DataFrame, int]:
     first_mid = prices.groupby(["product", "day"])["mid_price"].transform("first")
     prices["intraday_move"] = prices["mid_price"] - first_mid
     prices["normalized_intraday"] = 100 * prices["mid_price"] / first_mid
+    return prices
+
+
+def load_prices() -> tuple[pd.DataFrame, int]:
+    frames: list[pd.DataFrame] = []
+    for day in DAY_ORDER:
+        csv_path = DATA_DIR / f"prices_round_2_day_{day}.csv"
+        df = pd.read_csv(csv_path, sep=";")
+        for column in df.columns:
+            if column != "product":
+                df[column] = pd.to_numeric(df[column], errors="coerce")
+        df["day"] = df["day"].astype(int)
+        frames.append(df)
+
+    prices = pd.concat(frames, ignore_index=True)
+    step = int(prices["timestamp"].max()) + 100
+    day_offsets = {day: index * step for index, day in enumerate(DAY_ORDER)}
+    prices = enrich_price_frame(prices, day_offsets)
     return prices, step
+
+
+def load_official_test_prices(step: int) -> tuple[pd.DataFrame, list[int]]:
+    raw_log = json.loads(OFFICIAL_LOG_PATH.read_text(encoding="utf-8"))
+    prices = pd.read_csv(StringIO(raw_log["activitiesLog"]), sep=";")
+    for column in prices.columns:
+        if column != "product":
+            prices[column] = pd.to_numeric(prices[column], errors="coerce")
+    prices["day"] = prices["day"].astype(int)
+
+    official_days = sorted(prices["day"].dropna().unique().tolist())
+    day_offsets = {day: (len(DAY_ORDER) + index) * step for index, day in enumerate(official_days)}
+    prices = enrich_price_frame(prices, day_offsets)
+    return prices, official_days
 
 
 def load_trades(step: int) -> pd.DataFrame:
@@ -259,16 +284,35 @@ def product_day_slice(df: pd.DataFrame, product: str, day: int) -> pd.DataFrame:
     return df[(df[product_column] == product) & (df["day"] == day)]
 
 
-def add_day_background(ax: plt.Axes, step: int) -> None:
-    for index, day in enumerate(DAY_ORDER):
+def session_move_and_range(mid_series: pd.Series) -> tuple[float, float]:
+    valid_mid = mid_series.dropna()
+    if valid_mid.empty:
+        return np.nan, np.nan
+    net_move = valid_mid.iloc[-1] - valid_mid.iloc[0] if len(valid_mid) >= 2 else np.nan
+    session_range = valid_mid.max() - valid_mid.min()
+    return net_move, session_range
+
+
+def add_session_background(
+    ax: plt.Axes,
+    sessions: list[int],
+    step: int,
+    colors: dict[int, str],
+    labels: dict[int, str] | None = None,
+    alpha_by_session: dict[int, float] | None = None,
+) -> None:
+    labels = labels or {}
+    alpha_by_session = alpha_by_session or {}
+    for index, day in enumerate(sessions):
         start = index * step
         end = start + step
-        ax.axvspan(start, end, color=DAY_COLORS[day], alpha=0.04)
-        ax.axvline(end, color="#D1D5DB", linewidth=1.0, alpha=0.8)
+        ax.axvspan(start, end, color=colors[day], alpha=alpha_by_session.get(day, 0.04))
+        if index < len(sessions) - 1:
+            ax.axvline(end, color="#D1D5DB", linewidth=1.0, alpha=0.8)
         ax.text(
             start + step / 2,
             1.02,
-            f"day {day}",
+            labels.get(day, f"day {day}"),
             transform=ax.get_xaxis_transform(),
             ha="center",
             va="bottom",
@@ -276,8 +320,12 @@ def add_day_background(ax: plt.Axes, step: int) -> None:
             color="#4B5563",
             weight="bold",
         )
-    ax.set_xticks([step * index + step / 2 for index in range(len(DAY_ORDER))])
-    ax.set_xticklabels([f"day {day}" for day in DAY_ORDER])
+    ax.set_xticks([step * index + step / 2 for index in range(len(sessions))])
+    ax.set_xticklabels([labels.get(day, f"day {day}") for day in sessions])
+
+
+def add_day_background(ax: plt.Axes, step: int) -> None:
+    add_session_background(ax, DAY_ORDER, step, DAY_COLORS)
 
 
 def save_figure(fig: plt.Figure, output_path: Path) -> None:
@@ -618,6 +666,801 @@ def plot_behavior_dashboard(prices: pd.DataFrame, trades: pd.DataFrame, product:
     save_figure(fig, output_path)
 
 
+def combine_train_and_official_prices(prices: pd.DataFrame, official_prices: pd.DataFrame) -> pd.DataFrame:
+    return pd.concat(
+        [
+            prices.assign(dataset="train"),
+            official_prices.assign(dataset="official_test"),
+        ],
+        ignore_index=True,
+        sort=False,
+    )
+
+
+def build_train_test_session_meta(official_days: list[int]) -> tuple[list[int], dict[int, str], dict[int, str], dict[int, float]]:
+    session_order = DAY_ORDER + official_days
+    session_colors = {**DAY_COLORS}
+    session_labels = {day: f"train day {day}" for day in DAY_ORDER}
+    session_alpha = {day: 0.04 for day in DAY_ORDER}
+
+    for day in official_days:
+        session_colors[day] = OFFICIAL_TEST_COLOR
+        session_alpha[day] = 0.09
+        if len(official_days) == 1:
+            session_labels[day] = f"official test · day {day}"
+        else:
+            session_labels[day] = f"official · day {day}"
+
+    return session_order, session_colors, session_labels, session_alpha
+
+
+def plot_train_vs_official_test_mid(
+    prices: pd.DataFrame,
+    official_prices: pd.DataFrame,
+    official_days: list[int],
+    step: int,
+) -> None:
+    if official_prices.empty or not official_days:
+        return
+
+    combined = combine_train_and_official_prices(prices, official_prices)
+    session_order, session_colors, session_labels, session_alpha = build_train_test_session_meta(official_days)
+
+    ordered_products = [product for product in PRODUCT_COLORS if product in combined["product"].unique()]
+    if not ordered_products:
+        ordered_products = sorted(combined["product"].unique().tolist())
+
+    fig, axes = plt.subplots(
+        len(ordered_products),
+        2,
+        figsize=(18.5, 5.2 * len(ordered_products)),
+        gridspec_kw={"width_ratios": [1.6, 1]},
+        squeeze=False,
+    )
+
+    legend_handles = [
+        Line2D(
+            [0],
+            [0],
+            color=session_colors[day],
+            lw=3.0 if day in official_days else 2.2,
+            label=session_labels[day],
+        )
+        for day in session_order
+    ]
+
+    for row_index, product in enumerate(ordered_products):
+        product_name = pretty_product(product)
+        product_prices = combined[combined["product"] == product].copy()
+        ax_chrono, ax_overlay = axes[row_index]
+
+        add_session_background(ax_chrono, session_order, step, session_colors, session_labels, session_alpha)
+
+        for day in session_order:
+            day_df = product_day_slice(product_prices, product, day).copy()
+            if day_df.empty:
+                continue
+
+            color = session_colors[day]
+            is_official = day in official_days
+            raw_alpha = 0.26 if is_official else 0.16
+            smooth_alpha = 1.0 if is_official else 0.95
+            smooth_width = 3.2 if is_official else 2.2
+            zorder = 5 if is_official else 3
+
+            ax_chrono.plot(day_df["global_ts"], day_df["mid_price"], color=color, linewidth=1.15, alpha=raw_alpha, zorder=zorder - 1)
+            smooth_line = ax_chrono.plot(
+                day_df["global_ts"],
+                day_df["rolling_mid"],
+                color=color,
+                linewidth=smooth_width,
+                alpha=smooth_alpha,
+                zorder=zorder,
+            )[0]
+            if is_official:
+                smooth_line.set_path_effects([pe.Stroke(linewidth=smooth_width + 2.0, foreground="#FFF7ED"), pe.Normal()])
+                valid_mid = day_df.dropna(subset=["mid_price"])
+                if not valid_mid.empty:
+                    endpoints = valid_mid.iloc[[0, -1]]
+                    ax_chrono.scatter(
+                        endpoints["global_ts"],
+                        endpoints["mid_price"],
+                        s=34,
+                        color=color,
+                        edgecolors="white",
+                        linewidths=1.1,
+                        zorder=zorder + 1,
+                    )
+
+            valid_mid = day_df["mid_price"].dropna()
+            if valid_mid.empty:
+                continue
+            baseline = valid_mid.iloc[0]
+            day_df["normalized_mid"] = 100 * day_df["mid_price"] / baseline
+            overlay_line = ax_overlay.plot(
+                day_df["timestamp"],
+                day_df["normalized_mid"],
+                color=color,
+                linewidth=3.0 if is_official else 2.0,
+                alpha=1.0 if is_official else 0.92,
+                zorder=4 if is_official else 2,
+            )[0]
+            if is_official:
+                overlay_line.set_path_effects([pe.Stroke(linewidth=5.0, foreground="#FFF7ED"), pe.Normal()])
+
+        ax_chrono.set_title(f"{product_name} — train sessions stitched with the official test", loc="left", pad=14)
+        ax_chrono.text(
+            0.01,
+            0.98,
+            "Raw mid is faint · 50-tick rolling mid carries the structure · the official session is highlighted in amber.",
+            transform=ax_chrono.transAxes,
+            va="top",
+            fontsize=9.8,
+            color="#4B5563",
+            bbox={"boxstyle": "round,pad=0.25", "facecolor": "white", "edgecolor": "none", "alpha": 0.85},
+        )
+        ax_chrono.set_xlabel("session chronology")
+        ax_chrono.set_ylabel("mid price")
+
+        train_moves = []
+        for day in DAY_ORDER:
+            day_df = product_day_slice(product_prices, product, day)
+            move, _ = session_move_and_range(day_df["mid_price"])
+            if pd.notna(move):
+                train_moves.append(move)
+
+        official_move, official_range = session_move_and_range(
+            product_prices[product_prices["day"].isin(official_days)]["mid_price"]
+        )
+        train_avg_move = float(np.nanmean(train_moves)) if train_moves else np.nan
+        ax_chrono.text(
+            0.99,
+            0.96,
+            "\n".join(
+                [
+                    f"train avg Δ {train_avg_move:+.1f}" if pd.notna(train_avg_move) else "train avg Δ n/a",
+                    f"official Δ {official_move:+.1f}" if pd.notna(official_move) else "official Δ n/a",
+                    f"official range {official_range:.1f}" if pd.notna(official_range) else "official range n/a",
+                ]
+            ),
+            transform=ax_chrono.transAxes,
+            ha="right",
+            va="top",
+            fontsize=10,
+            color="#1F2937",
+            bbox={"boxstyle": "round,pad=0.42", "facecolor": "white", "edgecolor": "#E5E7EB", "alpha": 0.96},
+        )
+
+        ax_overlay.axhline(100, color="#9CA3AF", linewidth=1.0, linestyle="--")
+        ax_overlay.set_title("Intraday overlay (base = 100)", loc="left", pad=14)
+        ax_overlay.text(
+            0.01,
+            0.98,
+            "Same session, rebased to 100 so shape differences stand out instead of absolute price level.",
+            transform=ax_overlay.transAxes,
+            va="top",
+            fontsize=9.8,
+            color="#4B5563",
+            bbox={"boxstyle": "round,pad=0.25", "facecolor": "white", "edgecolor": "none", "alpha": 0.85},
+        )
+        ax_overlay.set_xlabel("timestamp")
+        ax_overlay.set_ylabel("normalized mid")
+        ax_overlay.xaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value / 1000:.0f}k"))
+
+    fig.suptitle("Round 2 — train vs official test mid price dashboard", x=0.01, y=0.992, ha="left", fontsize=22, fontweight="bold")
+    fig.text(
+        0.01,
+        0.958,
+        "Left: the three local train sessions followed by the official IMC test session. Right: normalized overlays to compare path shape.",
+        fontsize=11,
+        color="#4B5563",
+    )
+    fig.legend(handles=legend_handles, ncol=len(legend_handles), loc="upper center", bbox_to_anchor=(0.5, 0.928), frameon=False)
+    fig.subplots_adjust(top=0.81, hspace=0.38, wspace=0.16)
+
+    output_path = OUTPUT_DIR / "train_vs_official_test_mid_price_dashboard.png"
+    save_figure(fig, output_path)
+
+
+def plot_product_train_vs_official_test_comparison(
+    prices: pd.DataFrame,
+    official_prices: pd.DataFrame,
+    official_days: list[int],
+    product: str,
+    step: int,
+) -> None:
+    if official_prices.empty or not official_days:
+        return
+
+    combined = combine_train_and_official_prices(prices, official_prices)
+    session_order, session_colors, session_labels, session_alpha = build_train_test_session_meta(official_days)
+    product_prices = combined[combined["product"] == product].copy()
+    product_name = pretty_product(product)
+
+    fig, (ax_chrono, ax_overlay) = plt.subplots(
+        1,
+        2,
+        figsize=(17.2, 5.8),
+        gridspec_kw={"width_ratios": [1.55, 1]},
+    )
+
+    add_session_background(ax_chrono, session_order, step, session_colors, session_labels, session_alpha)
+
+    legend_handles = []
+    for day in session_order:
+        day_df = product_day_slice(product_prices, product, day).copy()
+        if day_df.empty:
+            continue
+
+        color = session_colors[day]
+        is_official = day in official_days
+        raw_alpha = 0.24 if is_official else 0.14
+        smooth_width = 3.0 if is_official else 2.1
+
+        ax_chrono.plot(day_df["global_ts"], day_df["mid_price"], color=color, linewidth=1.0, alpha=raw_alpha, zorder=2)
+        smooth_line = ax_chrono.plot(
+            day_df["global_ts"],
+            day_df["rolling_mid"],
+            color=color,
+            linewidth=smooth_width,
+            alpha=1.0 if is_official else 0.95,
+            zorder=4 if is_official else 3,
+        )[0]
+        if is_official:
+            smooth_line.set_path_effects([pe.Stroke(linewidth=smooth_width + 2.0, foreground="#FFF7ED"), pe.Normal()])
+
+        valid_mid = day_df["mid_price"].dropna()
+        if not valid_mid.empty:
+            day_df["normalized_mid"] = 100 * day_df["mid_price"] / valid_mid.iloc[0]
+            overlay_line = ax_overlay.plot(
+                day_df["timestamp"],
+                day_df["normalized_mid"],
+                color=color,
+                linewidth=3.0 if is_official else 2.0,
+                alpha=1.0 if is_official else 0.9,
+                zorder=4 if is_official else 2,
+            )[0]
+            if is_official:
+                overlay_line.set_path_effects([pe.Stroke(linewidth=5.0, foreground="#FFF7ED"), pe.Normal()])
+
+        legend_handles.append(
+            Line2D(
+                [0],
+                [0],
+                color=color,
+                lw=3.0 if is_official else 2.1,
+                label=session_labels[day],
+            )
+        )
+
+    ax_chrono.set_title(f"{product_name} — train sessions + official test", loc="left", pad=14)
+    ax_chrono.text(
+        0.01,
+        0.98,
+        "Train days stay in their own colors. The official test is highlighted in amber.",
+        transform=ax_chrono.transAxes,
+        va="top",
+        fontsize=10,
+        color="#4B5563",
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "none", "alpha": 0.88},
+    )
+    ax_chrono.set_xlabel("session chronology")
+    ax_chrono.set_ylabel("mid price")
+
+    ax_overlay.axhline(100, color="#9CA3AF", linewidth=1.0, linestyle="--")
+    ax_overlay.set_title("Normalized overlay (base = 100)", loc="left", pad=14)
+    ax_overlay.text(
+        0.01,
+        0.98,
+        "Rebased paths make it obvious whether the official test behaves like the train sessions.",
+        transform=ax_overlay.transAxes,
+        va="top",
+        fontsize=10,
+        color="#4B5563",
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "none", "alpha": 0.88},
+    )
+    ax_overlay.set_xlabel("timestamp")
+    ax_overlay.set_ylabel("normalized mid")
+    ax_overlay.xaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value / 1000:.0f}k"))
+
+    fig.suptitle(f"{product_name} — train vs official test", x=0.01, y=0.99, ha="left", fontsize=20, fontweight="bold")
+    fig.legend(handles=legend_handles, ncol=min(len(legend_handles), 4), loc="upper center", bbox_to_anchor=(0.5, 0.94), frameon=False)
+    fig.subplots_adjust(top=0.80, wspace=0.16)
+
+    output_path = OUTPUT_DIR / f"{product}_train_vs_official_test_comparison.png"
+    save_figure(fig, output_path)
+
+
+def plot_product_train_vs_official_test_envelope(
+    prices: pd.DataFrame,
+    official_prices: pd.DataFrame,
+    official_days: list[int],
+    product: str,
+) -> None:
+    if official_prices.empty or not official_days:
+        return
+
+    product_name = pretty_product(product)
+    train_product = prices[prices["product"] == product].copy()
+    official_product = official_prices[official_prices["product"] == product].copy()
+    if train_product.empty or official_product.empty:
+        return
+
+    train_sessions: list[pd.DataFrame] = []
+    for day in DAY_ORDER:
+        day_df = product_day_slice(train_product, product, day).copy()
+        valid_mid = day_df["mid_price"].dropna()
+        if valid_mid.empty:
+            continue
+        day_df["normalized_mid"] = 100 * day_df["mid_price"] / valid_mid.iloc[0]
+        day_df["session_label"] = f"train day {day}"
+        train_sessions.append(day_df[["timestamp", "normalized_mid", "session_label"]])
+
+    official_sessions: list[pd.DataFrame] = []
+    for day in official_days:
+        day_df = product_day_slice(official_product, product, day).copy()
+        valid_mid = day_df["mid_price"].dropna()
+        if valid_mid.empty:
+            continue
+        day_df["normalized_mid"] = 100 * day_df["mid_price"] / valid_mid.iloc[0]
+        day_df["session_label"] = f"official test · day {day}"
+        official_sessions.append(day_df[["timestamp", "normalized_mid", "session_label"]])
+
+    if not train_sessions or not official_sessions:
+        return
+
+    train_overlay = pd.concat(train_sessions, ignore_index=True)
+    official_overlay = pd.concat(official_sessions, ignore_index=True)
+    train_pivot = train_overlay.pivot(index="timestamp", columns="session_label", values="normalized_mid").sort_index()
+
+    envelope = pd.DataFrame(index=train_pivot.index)
+    envelope["train_mean"] = train_pivot.mean(axis=1)
+    envelope["train_min"] = train_pivot.min(axis=1)
+    envelope["train_max"] = train_pivot.max(axis=1)
+    envelope["train_q25"] = train_pivot.quantile(0.25, axis=1)
+    envelope["train_q75"] = train_pivot.quantile(0.75, axis=1)
+
+    official_series = (
+        official_overlay.groupby("timestamp", as_index=True)["normalized_mid"]
+        .mean()
+        .reindex(envelope.index)
+    )
+    if official_series.dropna().empty:
+        return
+
+    train_fill_color = "#94A3B8"
+    train_mean_color = "#475569"
+    fig, ax = plt.subplots(figsize=(14.2, 5.6))
+    ax.fill_between(
+        envelope.index,
+        envelope["train_min"],
+        envelope["train_max"],
+        color=train_fill_color,
+        alpha=0.10,
+        label="train min-max range",
+    )
+    ax.fill_between(
+        envelope.index,
+        envelope["train_q25"],
+        envelope["train_q75"],
+        color=train_fill_color,
+        alpha=0.20,
+        label="train interquartile band",
+    )
+    ax.plot(
+        envelope.index,
+        envelope["train_mean"],
+        color=train_mean_color,
+        linewidth=2.6,
+        label="train mean path",
+    )
+
+    for session_label, day_df in train_overlay.groupby("session_label"):
+        ax.plot(day_df["timestamp"], day_df["normalized_mid"], color=train_fill_color, linewidth=1.0, alpha=0.28)
+
+    official_line = ax.plot(
+        official_series.index,
+        official_series.values,
+        color=OFFICIAL_TEST_COLOR,
+        linewidth=3.2,
+        label="official test path",
+        zorder=5,
+    )[0]
+    official_line.set_path_effects([pe.Stroke(linewidth=5.2, foreground="#FFF7ED"), pe.Normal()])
+
+    final_delta = official_series.iloc[-1] - envelope["train_mean"].iloc[-1]
+    ax.text(
+        0.99,
+        0.95,
+        f"final official vs train mean: {final_delta:+.2f}",
+        transform=ax.transAxes,
+        ha="right",
+        va="top",
+        fontsize=10.5,
+        color="#1F2937",
+        bbox={"boxstyle": "round,pad=0.36", "facecolor": "white", "edgecolor": "#E5E7EB", "alpha": 0.95},
+    )
+
+    ax.axhline(100, color="#9CA3AF", linewidth=1.0, linestyle="--")
+    ax.set_title(f"{product_name} — official test vs train envelope", loc="left", pad=14)
+    ax.text(
+        0.01,
+        0.98,
+        "Slate envelope = train behavior after rebasing to 100. Amber line = official test.",
+        transform=ax.transAxes,
+        va="top",
+        fontsize=10.5,
+        color="#4B5563",
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "none", "alpha": 0.88},
+    )
+    ax.set_xlabel("timestamp")
+    ax.set_ylabel("normalized mid")
+    ax.xaxis.set_major_formatter(FuncFormatter(lambda value, _: f"{value / 1000:.0f}k"))
+    ax.legend(loc="upper left")
+
+    output_path = OUTPUT_DIR / f"{product}_train_vs_official_test_envelope.png"
+    save_figure(fig, output_path)
+
+
+def build_product_session_summary(
+    prices: pd.DataFrame,
+    official_prices: pd.DataFrame,
+    official_days: list[int],
+    product: str,
+) -> pd.DataFrame:
+    _, session_colors, session_labels, _ = build_train_test_session_meta(official_days)
+    rows: list[dict[str, float | int | str]] = []
+
+    for day in DAY_ORDER:
+        day_df = product_day_slice(prices, product, day).copy()
+        valid_mid = day_df["mid_price"].dropna()
+        if valid_mid.empty:
+            continue
+        rows.append(
+            {
+                "source": "train",
+                "day": day,
+                "session_label": session_labels[day],
+                "color": session_colors[day],
+                "start_mid": float(valid_mid.iloc[0]),
+                "end_mid": float(valid_mid.iloc[-1]),
+                "min_mid": float(valid_mid.min()),
+                "max_mid": float(valid_mid.max()),
+                "mean_mid": float(valid_mid.mean()),
+                "median_mid": float(valid_mid.median()),
+                "std_mid": float(valid_mid.std()),
+            }
+        )
+
+    for day in official_days:
+        day_df = product_day_slice(official_prices, product, day).copy()
+        valid_mid = day_df["mid_price"].dropna()
+        if valid_mid.empty:
+            continue
+        rows.append(
+            {
+                "source": "official_test",
+                "day": day,
+                "session_label": session_labels[day],
+                "color": session_colors[day],
+                "start_mid": float(valid_mid.iloc[0]),
+                "end_mid": float(valid_mid.iloc[-1]),
+                "min_mid": float(valid_mid.min()),
+                "max_mid": float(valid_mid.max()),
+                "mean_mid": float(valid_mid.mean()),
+                "median_mid": float(valid_mid.median()),
+                "std_mid": float(valid_mid.std()),
+            }
+        )
+
+    summary = pd.DataFrame(rows)
+    if not summary.empty:
+        summary["session_index"] = range(len(summary))
+        summary["range_mid"] = summary["max_mid"] - summary["min_mid"]
+    return summary
+
+
+def plot_product_session_gap_diagnostic(
+    prices: pd.DataFrame,
+    official_prices: pd.DataFrame,
+    official_days: list[int],
+    product: str,
+) -> None:
+    if official_prices.empty or not official_days:
+        return
+
+    summary = build_product_session_summary(prices, official_prices, official_days, product)
+    if summary.empty or len(summary) < 2:
+        return
+
+    product_name = pretty_product(product)
+    fig, (ax_sessions, ax_gaps) = plt.subplots(
+        1,
+        2,
+        figsize=(16.8, 5.8),
+        gridspec_kw={"width_ratios": [1.45, 1]},
+    )
+
+    for _, row in summary.iterrows():
+        x_pos = row["session_index"]
+        color = row["color"]
+        ax_sessions.vlines(x_pos, row["min_mid"], row["max_mid"], color=color, alpha=0.20, linewidth=14, zorder=1)
+        ax_sessions.plot(
+            [x_pos, x_pos],
+            [row["start_mid"], row["end_mid"]],
+            color=color,
+            linewidth=5,
+            solid_capstyle="round",
+            zorder=3,
+        )
+        ax_sessions.scatter(x_pos, row["start_mid"], color="white", edgecolors=color, s=95, linewidths=2.0, zorder=4)
+        ax_sessions.scatter(x_pos, row["end_mid"], color=color, edgecolors="white", s=95, linewidths=1.2, marker="s", zorder=4)
+
+    boundary_rows: list[dict[str, float | int | str]] = []
+    ordered = summary.sort_values("session_index").reset_index(drop=True)
+    for index in range(1, len(ordered)):
+        prev_row = ordered.iloc[index - 1]
+        curr_row = ordered.iloc[index]
+        gap = float(curr_row["start_mid"] - prev_row["end_mid"])
+        boundary_rows.append(
+            {
+                "boundary_label": (
+                    f"train {int(prev_row['day'])}→test {int(curr_row['day'])}"
+                    if curr_row["source"] == "official_test"
+                    else f"train {int(prev_row['day'])}→{int(curr_row['day'])}"
+                ),
+                "gap": gap,
+                "is_official_boundary": curr_row["source"] == "official_test",
+            }
+        )
+        ax_sessions.plot(
+            [prev_row["session_index"], curr_row["session_index"]],
+            [prev_row["end_mid"], curr_row["start_mid"]],
+            color=OFFICIAL_TEST_COLOR if curr_row["source"] == "official_test" else "#94A3B8",
+            linewidth=2.0,
+            linestyle="--",
+            alpha=0.95,
+            zorder=2,
+        )
+
+    boundary_df = pd.DataFrame(boundary_rows)
+    boundary_df["bar_color"] = boundary_df["is_official_boundary"].map({True: OFFICIAL_TEST_COLOR, False: "#CBD5E1"})
+    boundary_df["text_color"] = boundary_df["gap"].map(lambda value: "#B91C1C" if value < 0 else "#0F766E")
+    boundary_df["x"] = range(len(boundary_df))
+
+    ax_gaps.axhline(0, color="#9CA3AF", linewidth=1.0)
+    ax_gaps.bar(boundary_df["x"], boundary_df["gap"], color=boundary_df["bar_color"], width=0.62)
+    for _, row in boundary_df.iterrows():
+        offset = -0.8 if row["gap"] < 0 else 0.8
+        va = "top" if row["gap"] < 0 else "bottom"
+        ax_gaps.text(
+            row["x"],
+            row["gap"] + offset,
+            f"{row['gap']:+.1f}",
+            ha="center",
+            va=va,
+            fontsize=11,
+            color=row["text_color"],
+            fontweight="bold",
+        )
+    ax_gaps.set_xticks(boundary_df["x"])
+    ax_gaps.set_xticklabels(boundary_df["boundary_label"], rotation=12, ha="right")
+    ax_gaps.set_ylabel("open - prior close")
+    ax_gaps.set_title("Boundary gaps across sessions", loc="left", pad=14)
+    ax_gaps.text(
+        0.01,
+        0.98,
+        "The amber bar is the one that matters most here: last train close vs first official-test open.",
+        transform=ax_gaps.transAxes,
+        va="top",
+        fontsize=10.2,
+        color="#4B5563",
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "none", "alpha": 0.88},
+    )
+
+    last_boundary = boundary_df.iloc[-1]
+    ax_sessions.set_title(f"{product_name} — session gap diagnostic", loc="left", pad=14)
+    ax_sessions.text(
+        0.01,
+        0.98,
+        "Each vertical band shows the full session range. Circle = open, square = close.",
+        transform=ax_sessions.transAxes,
+        va="top",
+        fontsize=10.2,
+        color="#4B5563",
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "none", "alpha": 0.88},
+    )
+    ax_sessions.text(
+        0.99,
+        0.96,
+        f"official boundary gap: {last_boundary['gap']:+.1f} ticks",
+        transform=ax_sessions.transAxes,
+        ha="right",
+        va="top",
+        fontsize=10.5,
+        color="#1F2937",
+        bbox={"boxstyle": "round,pad=0.36", "facecolor": "white", "edgecolor": "#E5E7EB", "alpha": 0.95},
+    )
+    ax_sessions.set_xticks(summary["session_index"])
+    ax_sessions.set_xticklabels(summary["session_label"])
+    ax_sessions.set_ylabel("mid price")
+
+    fig.suptitle(f"{product_name} — close/open jump diagnostic", x=0.01, y=0.978, ha="left", fontsize=20, fontweight="bold")
+    fig.text(
+        0.01,
+        0.930,
+        "Use this when you want to see whether the official test opens where training left off, or whether the session re-anchors.",
+        fontsize=11,
+        color="#4B5563",
+    )
+    fig.subplots_adjust(top=0.76, wspace=0.18)
+
+    output_path = OUTPUT_DIR / f"{product}_session_gap_diagnostic.png"
+    save_figure(fig, output_path)
+
+
+def plot_product_anchor_shift_dashboard(
+    prices: pd.DataFrame,
+    official_prices: pd.DataFrame,
+    official_days: list[int],
+    product: str,
+) -> None:
+    if official_prices.empty or not official_days:
+        return
+
+    product_name = pretty_product(product)
+    train_product = prices[prices["product"] == product].copy()
+    official_product = official_prices[official_prices["product"] == product].copy()
+    if train_product.empty or official_product.empty:
+        return
+
+    train_mid = train_product["mid_price"].dropna().astype(float)
+    official_mid = official_product["mid_price"].dropna().astype(float)
+    if train_mid.empty or official_mid.empty:
+        return
+
+    session_summary = build_product_session_summary(prices, official_prices, official_days, product)
+    official_open = float(official_mid.iloc[0])
+    official_median = float(official_mid.median())
+    train_mean = float(train_mid.mean())
+    train_median = float(train_mid.median())
+    train_std = float(train_mid.std())
+    last_train_close = float(session_summary[session_summary["source"] == "train"].sort_values("day").iloc[-1]["end_mid"])
+    open_zscore = (official_open - train_mean) / train_std if train_std > 0 else np.nan
+    official_median_zscore = (official_median - train_mean) / train_std if train_std > 0 else np.nan
+    last_close_zscore = (last_train_close - train_mean) / train_std if train_std > 0 else np.nan
+    train_open_rank = float((train_mid <= official_open).mean())
+    official_below_train_min = float((official_mid < train_mid.min()).mean())
+
+    fig = plt.figure(figsize=(18.2, 6.1))
+    grid = fig.add_gridspec(1, 3, width_ratios=[1.15, 1.0, 0.9])
+    ax_density = fig.add_subplot(grid[0, 0])
+    ax_sessions = fig.add_subplot(grid[0, 1])
+    ax_score = fig.add_subplot(grid[0, 2])
+
+    sns.histplot(train_mid, bins=48, stat="density", color="#94A3B8", alpha=0.38, kde=True, ax=ax_density, label="train")
+    sns.histplot(official_mid, bins=42, stat="density", color=OFFICIAL_TEST_COLOR, alpha=0.30, kde=True, ax=ax_density, label="official test")
+    ax_density.axvline(train_median, color="#475569", linewidth=2.2, linestyle="--", label=f"train median {train_median:.1f}")
+    ax_density.axvline(official_open, color=OFFICIAL_TEST_COLOR, linewidth=2.8, label=f"official open {official_open:.1f}")
+    ax_density.axvline(official_median, color="#B45309", linewidth=2.2, linestyle=":", label=f"official median {official_median:.1f}")
+    ax_density.set_title("Train vs official mid distribution", loc="left", pad=14)
+    ax_density.text(
+        0.01,
+        0.98,
+        "If the amber distribution sits away from the slate one, the session likely re-anchored.",
+        transform=ax_density.transAxes,
+        va="top",
+        fontsize=10.2,
+        color="#4B5563",
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "none", "alpha": 0.88},
+    )
+    ax_density.set_xlabel("mid price")
+    ax_density.set_ylabel("density")
+    ax_density.legend(loc="upper right")
+
+    box_rows: list[pd.DataFrame] = []
+    _, session_colors, session_labels, _ = build_train_test_session_meta(official_days)
+    for day in DAY_ORDER:
+        day_df = product_day_slice(train_product, product, day).copy()
+        valid_mid = day_df["mid_price"].dropna()
+        if not valid_mid.empty:
+            box_rows.append(pd.DataFrame({"session_label": session_labels[day], "mid_price": valid_mid}))
+    for day in official_days:
+        day_df = product_day_slice(official_product, product, day).copy()
+        valid_mid = day_df["mid_price"].dropna()
+        if not valid_mid.empty:
+            box_rows.append(pd.DataFrame({"session_label": session_labels[day], "mid_price": valid_mid}))
+
+    if box_rows:
+        box_df = pd.concat(box_rows, ignore_index=True)
+        palette = {label: session_colors[day] for day, label in session_labels.items()}
+        sns.boxenplot(
+            data=box_df,
+            x="session_label",
+            y="mid_price",
+            order=[session_labels[day] for day in DAY_ORDER + official_days if session_labels.get(day) in box_df["session_label"].unique()],
+            hue="session_label",
+            palette=palette,
+            dodge=False,
+            legend=False,
+            ax=ax_sessions,
+        )
+    ax_sessions.set_title("Session level comparison", loc="left", pad=14)
+    ax_sessions.text(
+        0.01,
+        0.98,
+        "This isolates whether the official day sits on the same level as train, or on a different base price.",
+        transform=ax_sessions.transAxes,
+        va="top",
+        fontsize=10.2,
+        color="#4B5563",
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "none", "alpha": 0.88},
+    )
+    ax_sessions.set_xlabel("")
+    ax_sessions.set_ylabel("mid price")
+    ax_sessions.tick_params(axis="x", rotation=12)
+
+    ax_score.axvspan(-1, 1, color="#DCFCE7", alpha=0.45)
+    ax_score.axvspan(-2, 2, color="#F3F4F6", alpha=0.45)
+    ax_score.axvline(0, color="#6B7280", linewidth=1.2)
+    ax_score.axhline(0.55, color="#E5E7EB", linewidth=1.0)
+    ax_score.axhline(0.0, color="#E5E7EB", linewidth=1.0)
+    ax_score.axhline(-0.55, color="#E5E7EB", linewidth=1.0)
+    ax_score.scatter([last_close_zscore], [0.55], s=110, color="#475569", edgecolors="white", linewidths=1.2, zorder=3)
+    ax_score.scatter([official_median_zscore], [0.0], s=110, color="#B45309", edgecolors="white", linewidths=1.2, zorder=3)
+    ax_score.scatter([open_zscore], [-0.55], s=150, color=OFFICIAL_TEST_COLOR, edgecolors="white", linewidths=1.2, zorder=4)
+    ax_score.text(last_close_zscore, 0.69, "last train close", ha="center", fontsize=9.8, color="#334155")
+    ax_score.text(official_median_zscore, 0.14, "official median", ha="center", fontsize=9.8, color="#334155")
+    ax_score.text(open_zscore, -0.41, "official open", ha="center", fontsize=9.8, color="#334155")
+    ax_score.set_title("Anchor-shift score", loc="left", pad=14)
+    ax_score.text(
+        0.01,
+        0.98,
+        "Everything here is measured as z-score distance relative to the full train distribution.",
+        transform=ax_score.transAxes,
+        va="top",
+        fontsize=10.2,
+        color="#4B5563",
+        bbox={"boxstyle": "round,pad=0.28", "facecolor": "white", "edgecolor": "none", "alpha": 0.88},
+    )
+    ax_score.text(
+        0.99,
+        0.75,
+        "\n".join(
+            [
+                f"open z-score: {open_zscore:+.2f}",
+                f"open vs last close: {official_open - last_train_close:+.1f}",
+                f"train rank of open: {train_open_rank * 100:.2f}%",
+                f"official below train min: {official_below_train_min * 100:.2f}%",
+            ]
+        ),
+        transform=ax_score.transAxes,
+        ha="right",
+        va="top",
+        fontsize=10.5,
+        color="#1F2937",
+        bbox={"boxstyle": "round,pad=0.36", "facecolor": "white", "edgecolor": "#E5E7EB", "alpha": 0.95},
+    )
+    x_bound = max(3.0, float(np.nanmax(np.abs([open_zscore, official_median_zscore, last_close_zscore])) + 0.8))
+    ax_score.set_xlim(-x_bound, x_bound)
+    ax_score.set_ylim(-1.0, 1.0)
+    ax_score.set_xlabel("z-score vs train")
+    ax_score.set_yticks([])
+
+    fig.suptitle(f"{product_name} — anchor shift dashboard", x=0.01, y=0.978, ha="left", fontsize=20, fontweight="bold")
+    fig.text(
+        0.01,
+        0.930,
+        "This plot answers a more specific question than the comparison charts: did the official session open inside the train regime, or on a different price anchor?",
+        fontsize=11,
+        color="#4B5563",
+    )
+    fig.subplots_adjust(top=0.76, wspace=0.18)
+
+    output_path = OUTPUT_DIR / f"{product}_anchor_shift_dashboard.png"
+    save_figure(fig, output_path)
+
+
 def compute_metrics(prices: pd.DataFrame, trades: pd.DataFrame) -> pd.DataFrame:
     rows: list[dict[str, float | int | str]] = []
 
@@ -929,6 +1772,7 @@ def main() -> None:
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
 
     prices, step = load_prices()
+    official_prices, official_days = load_official_test_prices(step)
     trades = load_trades(step)
     metrics = compute_metrics(prices, trades)
 
@@ -938,7 +1782,13 @@ def main() -> None:
         plot_mid_only_small_multiples(prices, product)
         plot_mid_only_regime_dashboard(prices, metrics, product, step)
         plot_behavior_dashboard(prices, trades, product)
+        plot_product_train_vs_official_test_comparison(prices, official_prices, official_days, product, step)
+        plot_product_train_vs_official_test_envelope(prices, official_prices, official_days, product)
+        if product in DIAGNOSTIC_PRODUCTS:
+            plot_product_session_gap_diagnostic(prices, official_prices, official_days, product)
+            plot_product_anchor_shift_dashboard(prices, official_prices, official_days, product)
 
+    plot_train_vs_official_test_mid(prices, official_prices, official_days, step)
     plot_cross_asset_comparison(prices, metrics, step)
     plot_mid_only_strategy_map(metrics)
     save_metrics(metrics)

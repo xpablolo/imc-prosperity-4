@@ -76,6 +76,7 @@ export function parseAnyInputText(text) {
     );
   }
   return {
+    __kind: "imc-log",
     ...raw,
     logs: Array.isArray(raw.logs) ? raw.logs : [],
     tradeHistory: Array.isArray(raw.tradeHistory) ? raw.tradeHistory : [],
@@ -103,6 +104,7 @@ export function parseReplayLogText(text) {
   const tradesBlock = text.slice(tradesStart + tradesLabel.length).trim();
 
   return {
+    __kind: "replay-log",
     submissionId: null,
     activitiesLog,
     logs: splitJsonObjects(sandboxBlock),
@@ -343,11 +345,17 @@ export function buildStrategy(rawFile, rows, meta) {
     const cashFlow = -sign * t.price * t.quantity;
     const fill = {
       timestamp: t.timestamp,
+      day,
+      tickKey: tradeTickKeys[k],
       product: sym,
       side: isBuy ? "buy" : "sell",
       price: t.price,
       quantity: t.quantity,
       cashFlow,
+      source: rawFile.__kind ?? (rawFile.submissionId ? "imc-log" : "replay-log"),
+      buyer: t.buyer ?? "",
+      seller: t.seller ?? "",
+      tradeIndex: k,
     };
     const idx = ownFills.length;
     ownFills.push(fill);
@@ -423,6 +431,11 @@ export function buildStrategy(rawFile, rows, meta) {
     name: meta.name,
     color: meta.color,
     filename: meta.filename,
+    source: {
+      kind: rawFile.__kind ?? (rawFile.submissionId ? "imc-log" : "replay-log"),
+      filename: meta.filename,
+      submissionId: rawFile.submissionId ?? null,
+    },
     timestamps,
     rawTimestamps,
     days,

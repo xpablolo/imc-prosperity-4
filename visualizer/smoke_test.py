@@ -15,6 +15,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+import shutil
 from pathlib import Path
 
 THIS_DIR = Path(__file__).resolve().parent
@@ -109,6 +110,65 @@ def test_parsers() -> None:
         ok("Sin archivos prices_*.csv disponibles (no crítico)")
 
 
+def test_frontend_modules() -> None:
+    print("\n[Frontend analytics]")
+
+    node = shutil.which("node")
+    if not node:
+        ok("Node no disponible; salteo smoke frontend")
+        return
+
+    script = rf"""
+import fs from 'fs';
+import {{ parseAnyInputText, parseActivitiesCsv, buildStrategy }} from '{(THIS_DIR / 'js' / 'parser.js').as_uri()}';
+import {{ prepareStrategy }} from '{(THIS_DIR / 'js' / 'strategyPrep.js').as_uri()}';
+
+const text = fs.readFileSync('{(THIS_DIR / 'demo.log').as_posix()}', 'utf8');
+const raw = parseAnyInputText(text);
+const rows = parseActivitiesCsv(raw.activitiesLog);
+const strategy = prepareStrategy(buildStrategy(raw, rows, {{
+  id: 'smoke-demo',
+  name: 'Smoke Demo',
+  color: '#2dd4bf',
+  filename: 'demo.log',
+}}));
+
+if (!strategy.analysis) throw new Error('analysis missing');
+if (!strategy.analysis.execution?.overall) throw new Error('execution metrics missing');
+if (!strategy.analysis.lifecycle?.orders?.length) throw new Error('lifecycle missing');
+if (!strategy.analysis.diagnostics?.scores) throw new Error('diagnostics scores missing');
+
+globalThis.localStorage = {{ getItem() {{ return null; }}, setItem() {{}} }};
+await import('{(THIS_DIR / 'js' / 'panels' / 'orderBook.js').as_uri()}');
+await import('{(THIS_DIR / 'js' / 'panels' / 'whatHappened.js').as_uri()}');
+await import('{(THIS_DIR / 'js' / 'panels' / 'orderLifecycle.js').as_uri()}');
+await import('{(THIS_DIR / 'js' / 'panels' / 'executionPanel.js').as_uri()}');
+await import('{(THIS_DIR / 'js' / 'panels' / 'comparePanel.js').as_uri()}');
+await import('{(THIS_DIR / 'js' / 'panels' / 'diagnostics.js').as_uri()}');
+
+const html = fs.readFileSync('{(THIS_DIR / 'index.html').as_posix()}', 'utf8');
+for (const panelId of ['panel-compare', 'panel-execution', 'panel-diagnostics']) {{
+  if (!html.includes(panelId)) throw new Error(`missing panel id: ${{panelId}}`);
+}}
+console.log(JSON.stringify({{
+  fills: strategy.analysis.metadata.fillCount,
+  lifecycle: strategy.analysis.lifecycle.orders.length,
+  consistency: strategy.analysis.diagnostics.scores.consistency,
+}}));
+"""
+
+    proc = subprocess.run(
+        [node, "--input-type=module", "-e", script],
+        cwd=PROJECT_ROOT,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        fail("Smoke frontend falló", proc.stderr.strip() or proc.stdout.strip())
+    ok("Pipeline parser -> strategyPrep -> analytics")
+    ok("index.html contiene paneles nuevos")
+
+
 # ── endpoints ─────────────────────────────────────────────────────────────────
 
 def test_endpoints(base: str, runs: list[dict]) -> None:
@@ -178,6 +238,7 @@ def main() -> None:
 
     # Parsers sin servidor
     test_parsers()
+    test_frontend_modules()
 
     # Servidor + endpoints
     print(f"\n[Servidor] Arrancando en puerto {port}…")

@@ -1,5 +1,6 @@
 import { buildLimits } from "./positionLimits.js";
 import { computeSummary, decodeLambdaLog } from "./parser.js";
+import { computeDrawdown, deriveStrategyAnalytics } from "./analysis.js";
 
 export function prepareStrategy(strategy) {
   if (!strategy) return strategy;
@@ -68,6 +69,7 @@ export function prepareStrategy(strategy) {
   }
 
   strategy.events = buildEvents(strategy);
+  strategy.analysis = deriveStrategyAnalytics(strategy);
   return strategy;
 }
 
@@ -112,14 +114,6 @@ function computeTotalPnl(strategy) {
     for (let i = 0; i < total.length; i++) total[i] += arr[i] ?? 0;
   }
   return total;
-}
-
-export function computeDrawdown(values) {
-  let peak = -Infinity;
-  return values.map((value) => {
-    if (value > peak) peak = value;
-    return Math.min(0, value - peak);
-  });
 }
 
 function buildEvents(strategy) {

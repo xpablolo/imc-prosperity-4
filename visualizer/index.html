@@ -175,7 +175,7 @@
 
           <section class="panel panel-pressure" id="panel-pressure">
             <header class="panel-header">
-              <span id="pressure-title">Market Pressure</span>
+              <span id="pressure-title">What happened here?</span>
               <span class="muted num" id="pressure-value"></span>
             </header>
             <div class="panel-body pressure-body" id="pressure-body"></div>
@@ -210,9 +210,23 @@
             </div>
           </section>
 
+          <section class="panel panel-compare" id="panel-compare">
+            <header class="panel-header">
+              <span>Advanced Compare</span>
+            </header>
+            <div class="panel-body compare-body" id="compare-body"></div>
+          </section>
+
+          <section class="panel panel-execution" id="panel-execution">
+            <header class="panel-header">
+              <span>Execution Quality</span>
+            </header>
+            <div class="panel-body execution-body" id="execution-body"></div>
+          </section>
+
           <section class="panel panel-fills" id="panel-fills">
             <header class="panel-header">
-              <span id="fills-title">Own Fills · current</span>
+              <span id="fills-title">Order Lifecycle · current</span>
               <label class="check small"><input type="checkbox" id="fills-current" checked /> current only</label>
               <label class="check small"><input type="checkbox" id="fills-all" /> show all</label>
             </header>
@@ -230,6 +244,13 @@
               <span class="muted num" id="logs-ts"></span>
             </header>
             <div class="panel-body logs-body" id="logs-body"></div>
+          </section>
+
+          <section class="panel panel-diagnostics" id="panel-diagnostics">
+            <header class="panel-header">
+              <span>Strategy Diagnostics</span>
+            </header>
+            <div class="panel-body diagnostics-body" id="diagnostics-body"></div>
           </section>
         </div>
       </main>

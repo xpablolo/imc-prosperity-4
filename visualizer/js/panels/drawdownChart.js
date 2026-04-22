@@ -1,7 +1,7 @@
 import { subscribe, getState, getReference, setTickIdx } from "../store.js";
 import { lttb } from "../downsample.js";
 import { createChart } from "../chart.js";
-import { computeDrawdown } from "../strategyPrep.js";
+import { computeDrawdown } from "../analysis.js";
 
 const TARGET_POINTS = 1200;
 

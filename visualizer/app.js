@@ -12,8 +12,11 @@ import { mountPriceChart } from "./js/panels/priceChart.js";
 import { mountPositionChart } from "./js/panels/positionChart.js";
 import { mountSummary } from "./js/panels/summary.js";
 import { mountOrderBook } from "./js/panels/orderBook.js";
-import { mountPressure } from "./js/panels/pressure.js";
-import { mountOwnFills } from "./js/panels/ownFills.js";
+import { mountWhatHappened } from "./js/panels/whatHappened.js";
+import { mountOrderLifecycle } from "./js/panels/orderLifecycle.js";
+import { mountExecutionPanel } from "./js/panels/executionPanel.js";
+import { mountComparePanel } from "./js/panels/comparePanel.js";
+import { mountDiagnostics } from "./js/panels/diagnostics.js";
 import { mountLogs } from "./js/panels/logs.js";
 import { showAboutModal } from "./js/panels/about.js";
 import { loadStrategies } from "./js/persistence.js";
@@ -125,7 +128,7 @@ async function main() {
     midSpreadEl: $("book-mid-spread"),
   });
 
-  mountPressure({
+  mountWhatHappened({
     bodyEl: $("pressure-body"),
     titleEl: $("pressure-title"),
     valueEl: $("pressure-value"),
@@ -147,7 +150,15 @@ async function main() {
     resetZoomBtn: $("drawdown-reset-zoom"),
   });
 
-  mountOwnFills({
+  mountComparePanel({
+    bodyEl: $("compare-body"),
+  });
+
+  mountExecutionPanel({
+    bodyEl: $("execution-body"),
+  });
+
+  mountOrderLifecycle({
     bodyEl: $("fills-body"),
     titleEl: $("fills-title"),
     showAllInput: $("fills-all"),
@@ -158,6 +169,10 @@ async function main() {
     bodyEl: $("logs-body"),
     tsEl: $("logs-ts"),
     tabsEl: $("panel-logs").querySelector(".tabs"),
+  });
+
+  mountDiagnostics({
+    bodyEl: $("diagnostics-body"),
   });
 
   await hydrate();
